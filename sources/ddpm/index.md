@@ -29,7 +29,7 @@ Reference (顺序不分先后):
 
 4. denoising diffusion probabilistic models (DDPM; Ho et al. 2020)[https://arxiv.org/abs/2006.11239]
 
-5. B站参考：[一个视频看懂扩散模型DDPM原理推导|AI绘画底层模型_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1p24y1K7Pf?spm_id_from=333.788.videopod.sections&vd_source=7475af279c35642dd00ebe3c305bd3db)
+5. B站参考：[一个视频看懂扩散模型DDPM原理推导](https://www.bilibili.com/video/BV1p24y1K7Pf?spm_id_from=333.788.videopod.sections&vd_source=7475af279c35642dd00ebe3c305bd3db)
 
    
 
@@ -49,7 +49,7 @@ Given observed samples x from a distribution of interest, the goal of a generati
 
 首先通过加噪过程，也就是上图的从右到左，在原始图像$X_0$中逐步加入采样于高斯分布的噪声，在时间步$t$后最终得到$X_T$，是一个纯粹的高斯噪声，用数学语言描述就是：
 
-加噪过程：$q(x_t|x_{t-1})$; 时间步T后：$x_T \in \mathcal{N}(0,1)$
+加噪过程： $q(x_t|x_{t-1})$ ; 时间步T后： $x_T \in \mathcal{N}(0,1)$ 
 
 这里会有一个问题：为什么最终的图像**会是高斯分布**？为什么**需要是高斯分布**？
 
@@ -59,7 +59,7 @@ Given observed samples x from a distribution of interest, the goal of a generati
 
 所以上图中的从左到右即是去噪过程，从采样于高斯噪声的一个随机噪声$X_T$，通过逐步减去时间步之间的噪声（这个做法是DDPM的实现），最终可以得到原始图像$X_0$。用数学语言描述就是：
 
-去噪过程：$p_{\theta}(x_{t-1}| x_t)$; 时间步T后：$X_0$
+去噪过程： $p_{\theta}(x_{t-1}| x_t)$ ; 时间步T后： $X_0$ 
 
 综上：扩散模型分为**加噪过程（foward process）和去噪过程（reverse process）**，在加噪过程，向原始图像中逐步加入人为的高斯噪声。在去噪过程当中，从高斯噪声出发逐步减去高斯噪声，最终生成图像。需要明确的是，神经网络在去噪过程当中需要根据当前的图像和时间步预测出此图像的噪声，然后再减去噪声。
 
@@ -67,7 +67,7 @@ Given observed samples x from a distribution of interest, the goal of a generati
 
 所以我们现在可以定义一下扩散模型的任务：
 
-即学习一个分布：$p_{\theta}(x_{t-1}| x_t)$，使我的模型能够根据，$x_t$生成$x_{t-1}$。
+即学习一个分布： $p_{\theta}(x_{t-1}| x_t)$ ，使我的模型能够根据， $x_t$ 生成 $x_{t-1}$ 。
 
 
 ### 1. Diffusion Model in DDPM
@@ -76,54 +76,69 @@ Given observed samples x from a distribution of interest, the goal of a generati
 #### 1.1 前向扩散过程 #### 
 
 
-我们从一个真实分布当中采样一个样本点: $x_0$ ~ $q(x)$, 这里可以理解为 $q(x)$ 是我们的总的数据集，$ x_0 $ 即是选择的一张图片即一个样本。那什么是前向扩散呢，即我们不断的对一张原始的图片进行加噪声，按照时间步，从 0 到 **T** ，每一个时间步对原始图像加一个从高斯分布当中采样出来的噪声，这个噪声的图像大小和原始图像大小是一样的，可以得到的结论是，累积到时间步 **T** 之后，原始的图像会不断的接近纯粹的高斯噪声。
-我们会得到一系列按照时间步的噪声： $ x_1, ... , x_T $。
+我们从一个真实分布当中采样一个样本点:  $x_0$  ~  $q(x)$ , 这里可以理解为 $q(x)$ 是我们的总的数据集， $ x_0 $  即是选择的一张图片即一个样本。那什么是前向扩散呢，即我们不断的对一张原始的图片进行加噪声，按照时间步，从 0 到 **T** ，每一个时间步对原始图像加一个从高斯分布当中采样出来的噪声，这个噪声的图像大小和原始图像大小是一样的，可以得到的结论是，累积到时间步 **T** 之后，原始的图像会不断的接近纯粹的高斯噪声。
+我们会得到一系列按照时间步的噪声： $ x_1, ... , x_T $ 。
 
 而这个加噪过程的 step size，即每一个时间步加多少噪声，是由一个 **variance schedule** $ {\beta}_t $ 相关的:
-即$q(x_{t} | x_{t-1})$：
+即 $q(x_{t} | x_{t-1})$ ：
+
 $$
 x_{t} = \sqrt{1 - \beta_t} x_{t-1} + \sqrt{\beta_t}\epsilon
 $$
+
 这里会出现对于diffusion model理论和实践上的一个差异点：
 
 即：**在想象中我们的加噪声过程是逐步的，从 $ x_0 $ 到 $ x_T $ ， 但是在实际上的操作过程中，可以直接由 $ x_0 $ 直接推导出其他时间步的加噪声图像**，这是如何做到的？A little tricky （参数重整化）.
+
 $$
 x_1 = \sqrt{1 - \beta_1} x_{0} + \sqrt{\beta_1}\epsilon_1
 \\
 x_2 = \sqrt{1 - \beta_2} x_{1} + \sqrt{\beta_2}\epsilon_2
 $$
-将$x_1$代入$x_2$中：
+
+将 $x_1$ 代入 $x_2$ 中：
+
 $$
 x_2 = \sqrt{1 - \beta_2} (\sqrt{1 - \beta_1} x_{0} + \sqrt{\beta_1}\epsilon_1) + \sqrt{\beta_2}\epsilon_2
 \\
 = \sqrt{1 - \beta_2}\sqrt{1 - \beta_1}x_{0} + \sqrt{1 - \beta_2}\sqrt{\beta_1}\epsilon_1 + \sqrt{\beta_2}\epsilon_2
 $$
-${\epsilon_1}$和${\epsilon_2}$是采样于同一个正态分布当中的，他们的加权平均可以写成从一个同种正态分布当中采样出来的另外一种分布。
+
+$ {\epsilon_1} $ 和 $ {\epsilon_2} $ 是采样于同一个正态分布当中的，他们的加权平均可以写成从一个同种正态分布当中采样出来的另外一种分布。
+
 $$
-\sqrt{1 - \beta_2}\sqrt{\beta_1}\epsilon_1 + \sqrt{\beta_2}\epsilon_2 = \sqrt{(1 - (1 - \beta_2)(1 - \beta_1)}\epsilon^*
+\sqrt{1 - \beta_2}\sqrt{\beta_1}\epsilon_1 + \sqrt{\beta_2}\epsilon_2 = \sqrt{(1 - (1 - \beta_2)(1 - \beta_1))}\epsilon^*
 $$
+
 以此类推，可以得到：
+
 $$
-x_t = \sqrt{1 - \beta_1}...\sqrt{1 - \beta_t}x_0 + \sqrt{1 - (1 - \beta_1)...(1 - \beta_t)}\epsilon
+x_t = \sqrt{1 - \beta_1}...\sqrt{1 - \beta_t}x_0 + \sqrt{(1 - (1 - \beta_1)...(1 - \beta_t))}\epsilon
 $$
+
 让：
+
 $$
 \sqrt{1 - \beta_1}...\sqrt{1 - \beta_t} = \sqrt{\bar{\alpha_t}}
 \\
 则：
 x_t = \sqrt{\bar{\alpha_t}} x_0 + \sqrt{1 - \bar{\alpha_t}}\epsilon
 $$
-$x_t$ 代表t时刻的图像是有$t-1$时刻的图像和噪声加权平均而来, $\epsilon$ 采样于 $\mathcal{N}(0,I)$ 。
 
-由于$\epsilon \sim \mathcal{N}(0,I)$，根据正态分布的性质：若e服从标准正态分布，那么a+be就服从均值为a标准差为b的正态分布：
+$ x_t $ 代表t时刻的图像是有 $ t-1 $ 时刻的图像和噪声加权平均而来, $\epsilon$ 采样于 $\mathcal{N}(0,I)$ 。
+
+由于 $\epsilon \sim \mathcal{N}(0,I)$ ，根据正态分布的性质：若e服从标准正态分布，那么a+be就服从均值为a标准差为b的正态分布：
 
 可以总结为：
+
 $$
 q(x_t | x_{t-1}) = \mathcal{N}(x_t; \sqrt{1 - {\beta}_t}x_{t-1},  {\beta}_tI)
 \\
 = \mathcal{N}(x_t; \sqrt{\alpha_t}x_{t-1},  (1 - \alpha_t)I)
 $$
+
 根据上面关于$x_0$的推导，有：
+
 $$
 q(x_t | x_{t-1}, x_0) = \mathcal{N}(x_t; \sqrt{\bar{\alpha_t}} x_0,  (1-{\bar\alpha}_t)I)
 $$
@@ -133,10 +148,13 @@ q(x_{1:T} | x_0) = \prod_{t=1}^T q(x_t | x_{t-1})
 $$
 
 一般噪声的加入权重会随着时间步的增大而增大，所以有：
+
 $$
 \beta_1 < \beta_2 < ... < \beta_T
 $$
+
 因此：
+
 $$
 \bar\alpha_1 > \bar\alpha_2 > ... > \bar\alpha_T
 $$
