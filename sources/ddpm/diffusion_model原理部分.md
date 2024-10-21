@@ -119,7 +119,7 @@ $$
 $$
 q(x_t | x_{t-1}) = \mathcal{N}(x_t; \sqrt{1 - {\beta}_t}x_{t-1},  {\beta}_tI)
 \\
-= \mathcal{N}(x_t; \sqrt{{\alpha}_t}x_{t-1},  (1 - {\alpha}_t)I)
+= \mathcal{N}(x_t; \sqrt{\alpha_t}x_{t-1},  (1 - \alpha_t)I)
 $$
 根据上面关于$x_0$的推导，有：
 $$
