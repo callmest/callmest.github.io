@@ -45,8 +45,6 @@ Given observed samples x from a distribution of interest, the goal of a generati
 
 <img src="./assets/diffusion_model.png" alt="扩散模型概述" style="zoom:50%;" />
 
-<center>Jonathan Ho et al, DDPM, 2020.<center>
-
 而上图是扩散模型的概图，其想法是：
 
 首先通过加噪过程，也就是上图的从右到左，在原始图像$X_0$中逐步加入采样于高斯分布的噪声，在时间步$t$后最终得到$X_T$，是一个纯粹的高斯噪声，用数学语言描述就是：
