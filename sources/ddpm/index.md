@@ -318,13 +318,13 @@ DDPM论文中最经典的两个伪代码：
    $$
    log p(x) = log  ∫  p(x_{0:T} )dx_{1:T}
    \\
-   = log  ∫ \frac{p(x_{0:T} )q(x_{1:T} \lvertx_0) }{ q(x_{1:T} \lvertx_0) }dx_{1:T}
+   = log  ∫ \frac{p(x_{0:T} )q(x_{1:T} \lvert x_0) }{ q(x_{1:T} \lvert x_0) }dx_{1:T}
    \\
-   = log E_{q(x_{1:T} \lvertx_0)} \left[ \frac{ p(x_{0:T})} {q(x_{1:T} \lvertx_0)}  \right] \quad \quad\text{（期望的定义）}
+   = log E_{q(x_{1:T} \lvert x_0)} \left[ \frac{ p(x_{0:T})} {q(x_{1:T} \lvert x_0)}  \right] \quad \quad\text{（期望的定义）}
    \\
-   ≥ E_{q(x_{1:T} \lvertx_0)} \left[ log\frac{ p(x_{0:T})} {q(x_{1:T} \lvertx_0)}  \right]  \quad \quad\text{（Jensen不等式）}
+   ≥ E_{q(x_{1:T} \lvert x_0)} \left[ log\frac{ p(x_{0:T})} {q(x_{1:T} \lvert x_0)}  \right]  \quad \quad\text{（Jensen不等式）}
    \\
-   = E_{q(x_{1}\lvertx_{0}}) [log p_θ(x_0\lvertx_1)]  − \mathcal{D}_{KL}(q(x_T \lvertx_0) \lVert p(x_T ))   −  \Sigma_{t=2}^{T}  E_{q(x_{t}\lvertx_{0})} \left[\mathcal{D}_{KL}(q(x_{t-1}\lvertx_t,x_{0})) \lVert p_\theta(x_{t−1}\lvertx_t)) \right]
+   = E_{q(x_{1}\lvertx_{0}}) [log p_θ(x_0 \lvert x_1)]  − \mathcal{D}_{KL}(q(x_T \lvert x_0) \lVert p(x_T ))   −  \Sigma_{t=2}^{T}  E_{q(x_{t} \lvert x_{0})} \left[\mathcal{D}_{KL}(q(x_{t-1} \lvert x_t ,x_{0})) \lVert p_\theta(x_{t−1} \lvert x_t)) \right]
    $$
 
    具体推导过程可以看参考资料3，公式58。
