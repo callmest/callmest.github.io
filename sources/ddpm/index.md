@@ -324,7 +324,7 @@ DDPM论文中最经典的两个伪代码：
    \\
    ≥ E_{q(x_{1:T} \lvert x_0)} \left[ log\frac{ p(x_{0:T})} {q(x_{1:T} \lvert x_0)}  \right]  \quad \quad\text{（Jensen不等式）}
    \\
-   = E_{q(x_{1}\lvertx_{0}}) [log p_θ(x_0 \lvert x_1)]  − \mathcal{D}_{KL}(q(x_T \lvert x_0) \lVert p(x_T ))   −  \Sigma_{t=2}^{T}  E_{q(x_{t} \lvert x_{0})} \left[\mathcal{D}_{KL}(q(x_{t-1} \lvert x_t ,x_{0})) \lVert p_\theta(x_{t−1} \lvert x_t)) \right]
+   = E_{q(x_{1} \lvert x_{0}}) [log p_θ(x_0 \lvert x_1)]  − \mathcal{D}_{KL}(q(x_T \lvert x_0) \lVert p(x_T ))   −  \Sigma_{t=2}^{T}  E_{q(x_{t} \lvert x_{0})} \left[\mathcal{D}_{KL}(q(x_{t-1} \lvert x_t ,x_{0})) \lVert p_\theta(x_{t−1} \lvert x_t)) \right]
    $$
 
    具体推导过程可以看参考资料3，公式58。
@@ -333,7 +333,7 @@ DDPM论文中最经典的两个伪代码：
 
    我们可以只关注这个公式的最后一项，需要最大化 $ log p(x) $ ，即需要最小化这一项。最后一项是计算 $ q(x_{t-1}\lvert x_t,x_{0}) $ 和 $ p_\theta(x_{t−1}\lvert x_t) $ 的KL散度，KL散度是用来计算两个概率分布之间差异性的指标，因此，当两个分布接近的时候，差异最小。
 
-   也就是将 $ p_\theta(x_{t−1}\lvert x_t) = q(x_{t-1}\lvert x_t,x_{0}) $ ，这和我们的公式12-14 所说的内容是一样的。只不过我们的逻辑是通过马尔可夫性质和贝叶斯公式直接进行了转化。
+   也就是将 $ p_\theta(x_{t−1} \lvert x_t) = q(x_{t-1}\lvert x_t,x_{0}) $ ，这和我们的公式12-14 所说的内容是一样的。只不过我们的逻辑是通过马尔可夫性质和贝叶斯公式直接进行了转化。
 
 2. $T$要足够大，$\beta_t$要足够小，$\alpha_t = 1 - \beta_t$
 
