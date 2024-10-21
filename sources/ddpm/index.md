@@ -49,7 +49,7 @@ Given observed samples x from a distribution of interest, the goal of a generati
 
 首先通过加噪过程，也就是上图的从右到左，在原始图像$X_0$中逐步加入采样于高斯分布的噪声，在时间步$t$后最终得到$X_T$，是一个纯粹的高斯噪声，用数学语言描述就是：
 
-加噪过程： $ q(x_t | x_{t-1}) $ ;时间步T后： $ x_T \in \mathcal{N}(0,1) $ 
+加噪过程： $ q(x_t \lvert x_{t-1}) $ ;时间步T后： $ x_T \in \mathcal{N}(0,1) $ 
 
 这里会有一个问题：为什么最终的图像**会是高斯分布**？为什么**需要是高斯分布**？
 
@@ -59,15 +59,15 @@ Given observed samples x from a distribution of interest, the goal of a generati
 
 所以上图中的从左到右即是去噪过程，从采样于高斯噪声的一个随机噪声$x_T$，通过逐步减去时间步之间的噪声（这个做法是DDPM的实现），最终可以得到原始图像$X_0$。用数学语言描述就是：
 
-去噪过程： $ p_{\theta}(x_{t-1} |  x_t) $ ; 时间步T后： $x_0$ 
+去噪过程： $ p_{\theta}(x_{t-1} \lvert  x_t) $ ; 时间步T后： $x_0$ 
 
 综上：扩散模型分为**加噪过程（foward process）和去噪过程（reverse process）**，在加噪过程，向原始图像中逐步加入人为的高斯噪声。在去噪过程当中，从高斯噪声出发逐步减去高斯噪声，最终生成图像。需要明确的是，神经网络在去噪过程当中需要根据当前的图像和时间步预测出此图像的噪声，然后再减去噪声。
 
-更深一点的理解：在去噪过程当中 $ p_{\theta} $ 即是我们的模型，我们的模型需要“吃”一个 $ x $ 和 $ t $ ，得到 $ t-1 $ ，这里的 $ p_{\theta}(x_{t-1}| x_t) $ 是$ t-1 $ 时刻 $ x $ 所对对应的分布而不是单纯的一个图像。这样我在下一步去噪过程时，又是从这个分布再进行取样，再进行下一步的生成，增加了随机性。所以，关于扩散模型会有一句话：把需要一步做好的事情(generating), 分成很多步去做(step by step)。
+更深一点的理解：在去噪过程当中 $ p_{\theta} $ 即是我们的模型，我们的模型需要“吃”一个 $ x $ 和 $ t $ ，得到 $ t-1 $ ，这里的 $ p_{\theta}(x_{t-1}\lvert x_t) $ 是$ t-1 $ 时刻 $ x $ 所对对应的分布而不是单纯的一个图像。这样我在下一步去噪过程时，又是从这个分布再进行取样，再进行下一步的生成，增加了随机性。所以，关于扩散模型会有一句话：把需要一步做好的事情(generating), 分成很多步去做(step by step)。
 
 所以我们现在可以定义一下扩散模型的任务：
 
-即学习一个分布： $ p_{\theta}(x_{t-1} |   x_t) $ ，使我的模型能够根据， $ x_t $ 生成 $ x_{t-1} $ 。
+即学习一个分布： $ p_{\theta}(x_{t-1} \lvert   x_t) $ ，使我的模型能够根据， $ x_t $ 生成 $ x_{t-1} $ 。
 
 
 ### 1. Diffusion Model in DDPM
@@ -80,7 +80,7 @@ Given observed samples x from a distribution of interest, the goal of a generati
 我们会得到一系列按照时间步的噪声： $ x_1, ... , x_T $ 。
 
 而这个加噪过程的 step size，即每一个时间步加多少噪声，是由一个 **variance schedule** $ \beta_t $ 相关的，
-即 $ q(x_{t} |  x_{t-1}) $ ：
+即 $ q(x_{t} \lvert  x_{t-1}) $ ：
 
 $$
 x_{t} = \sqrt{1 - \beta_t} x_{t-1} + \sqrt{\beta_t}\epsilon
@@ -132,7 +132,7 @@ $ x_t $ 代表t时刻的图像是有 $ t-1 $ 时刻的图像和噪声加权平�
 可以总结为：
 
 $$
-q(x_t | x_{t-1}) = \mathcal{N}(x_t; \sqrt{1 - {\beta}_t}x_{t-1},  {\beta}_tI)
+q(x_t \lvert x_{t-1}) = \mathcal{N}(x_t; \sqrt{1 - {\beta}_t}x_{t-1},  {\beta}_tI)
 \\
 = \mathcal{N}(x_t; \sqrt{\alpha_t}x_{t-1},  (1 - \alpha_t)I)
 $$
@@ -140,11 +140,11 @@ $$
 根据上面关于$x_0$的推导，有：
 
 $$
-q(x_t | x_{t-1}, x_0) = \mathcal{N}(x_t; \sqrt{\bar{\alpha_t}} x_0,  (1-{\bar\alpha}_t)I)
+q(x_t \lvert x_{t-1}, x_0) = \mathcal{N}(x_t; \sqrt{\bar{\alpha_t}} x_0,  (1-{\bar\alpha}_t)I)
 $$
 
 $$
-q(x_{1:T} | x_0) = \prod_{t=1}^T q(x_t | x_{t-1})
+q(x_{1:T} \lvert x_0) = \prod_{t=1}^T q(x_t \lvert x_{t-1})
 $$
 
 一般噪声的加入权重会随着时间步的增大而增大，所以有：
@@ -161,40 +161,40 @@ $$
 
 #### 1.2 逆向扩散过程 (reverse diffusion process) #### 
 
-通过前向扩散过程，我们得到了从原始图像到最终完全是噪声的图像，如果我们能够逆向这个过程，即通过一个完全噪声的图像反向生成图像，那我们即完成了从无到有的生成过程。从数学上来说，我们开始从一个噪声：$x_T$ ~ $ \mathcal{N} (0,I) $ 不断从 $ q( x_ {t-1}| x_t) $中采样，得到$ x_0' $. 
+通过前向扩散过程，我们得到了从原始图像到最终完全是噪声的图像，如果我们能够逆向这个过程，即通过一个完全噪声的图像反向生成图像，那我们即完成了从无到有的生成过程。从数学上来说，我们开始从一个噪声：$x_T$ ~ $ \mathcal{N} (0,I) $ 不断从 $ q( x_ {t-1}\lvert x_t) $中采样，得到$ x_0' $. 
 
-在第0部分我们也得到了，扩散模型的任务就是去得到一个概率分布：$ p_{\theta}(x_{t-1}| x_t) $。
+在第0部分我们也得到了，扩散模型的任务就是去得到一个概率分布：$ p_{\theta}(x_{t-1}\lvert x_t) $。
 
 我们可以根据贝叶斯公式计算这个概率 （$ \theta $ 省略不写）：
 
 $$
-p(x_{t-1} | x_t) = \frac{p(x_t | x_{t-1})p(x_{t-1})}{p(x_t)}
+p(x_{t-1} \lvert x_t) = \frac{p(x_t \lvert x_{t-1})p(x_{t-1})}{p(x_t)}
 \\
-可以发现，这里的p(x_t | x_{t-1})就是加噪过程的q
+可以发现，这里的p(x_t \lvert x_{t-1})就是加噪过程的q
 \\
-= \frac{q(x_t | x_{t-1})p(x_{t-1})}{p(x_t)}
+= \frac{q(x_t \lvert x_{t-1})p(x_{t-1})}{p(x_t)}
 $$
 
-但是这里得到的$ p(x_{t-1}) $ 和 $ p(x_t) $ 是不好求的，因为我无法直接得到 $ p(x_t) $ 的分布。但是我们上面是推导了 $ x_0 $和 $ x_t $ 的关系的，因此可以将求 $ p(x_{t-1} |  x_t) $ 转化一下： $ p(x_{t-1} | x_t, x_0) $ 
+但是这里得到的$ p(x_{t-1}) $ 和 $ p(x_t) $ 是不好求的，因为我无法直接得到 $ p(x_t) $ 的分布。但是我们上面是推导了 $ x_0 $和 $ x_t $ 的关系的，因此可以将求 $ p(x_{t-1} \lvert  x_t) $ 转化一下： $ p(x_{t-1} \lvert x_t, x_0) $ 
 
 
-#### 1.3 推导：$ p(x_{t-1} | x_t, x_0) $ #### 
+#### 1.3 推导：$ p(x_{t-1} \lvert x_t, x_0) $ #### 
 
 
 我们用贝叶斯公式重写：
 
 $$
-p(x_{t-1} | x_t, x_0) 
+p(x_{t-1} \lvert x_t, x_0) 
 \\
-= \frac{p(x_t | x_{t-1}, x_0)p(x_{t-1} | x_0) }{p(x_t | x_0)}
+= \frac{p(x_t \lvert x_{t-1}, x_0)p(x_{t-1} \lvert x_0) }{p(x_t \lvert x_0)}
 \\
-= \frac{q(x_t | x_{t-1}, x_0)q(x_{t-1} | x_0) }{q(x_t | x_0)}
+= \frac{q(x_t \lvert x_{t-1}, x_0)q(x_{t-1} \lvert x_0) }{q(x_t \lvert x_0)}
 $$
 
 整个加噪过程是马尔可夫性质的，上一时刻和这一时刻的加噪过程无关，可以将左上角式子中的x_0省去
 
 $$
-= \frac{q(x_t | x_{t-1})q(x_{t-1} | x_0) }{q(x_t | x_0)}
+= \frac{q(x_t \lvert x_{t-1})q(x_{t-1} \lvert x_0) }{q(x_t \lvert x_0)}
 $$
 
 现在得到的这些概率分布都是已知的，代入：
@@ -215,7 +215,7 @@ $$
 \propto \mathcal{N}(x_{t-1}; \frac{\sqrt\alpha_t(1 - \bar\alpha_{t-1})x_t + \sqrt{\bar\alpha_{t-1}}(1 - \alpha_{t})x_0}{1 - \bar\alpha_t}; \frac{(1 - \alpha_t)(1 - \bar\alpha_{t-1})}{1-\bar\alpha_{t-1}}I)
 $$
 
-可以发现，最终算出的 $ p(x_{t-1} |  x_t) $ 也是满足正态分布的，
+可以发现，最终算出的 $ p(x_{t-1} \lvert  x_t) $ 也是满足正态分布的，
 
 其中均值是一个关于 $ x_t $ 和 $ x_0 $ 的函数，方差是一个常量，取决于人为设定的加噪系数 $ \beta_t $ 。
 
@@ -225,7 +225,7 @@ $$
 \Sigma(t) = \frac{(1 - \alpha_t)(1 - \bar\alpha_{t-1})}{1-\bar\alpha_{t-1}}I
 $$
 
-因此，经过上面推导，我们求出了 $ p(x_{t-1} |  x_t, x_0) $ 的分布满足正态分布，观察正态分布的表达，发现其中均值是一个函数，我们又把问题转化成求均值的问题，即如果我们能够求出均值，可以利用
+因此，经过上面推导，我们求出了 $ p(x_{t-1} \lvert  x_t, x_0) $ 的分布满足正态分布，观察正态分布的表达，发现其中均值是一个函数，我们又把问题转化成求均值的问题，即如果我们能够求出均值，可以利用
 
 $$
 x_{t-1} = \mu(x_t, x_0) + \Sigma(t)\epsilon
@@ -318,22 +318,22 @@ DDPM论文中最经典的两个伪代码：
    $$
    log p(x) = log  ∫  p(x_{0:T} )dx_{1:T}
    \\
-   = log  ∫ \frac{p(x_{0:T} )q(x_{1:T} |x_0) }{ q(x_{1:T} |x_0) }dx_{1:T}
+   = log  ∫ \frac{p(x_{0:T} )q(x_{1:T} \lvertx_0) }{ q(x_{1:T} \lvertx_0) }dx_{1:T}
    \\
-   = log E_{q(x_{1:T} |x_0)} \left[ \frac{ p(x_{0:T})} {q(x_{1:T} |x_0)}  \right] \quad \quad\text{（期望的定义）}
+   = log E_{q(x_{1:T} \lvertx_0)} \left[ \frac{ p(x_{0:T})} {q(x_{1:T} \lvertx_0)}  \right] \quad \quad\text{（期望的定义）}
    \\
-   ≥ E_{q(x_{1:T} |x_0)} \left[ log\frac{ p(x_{0:T})} {q(x_{1:T} |x_0)}  \right]  \quad \quad\text{（Jensen不等式）}
+   ≥ E_{q(x_{1:T} \lvertx_0)} \left[ log\frac{ p(x_{0:T})} {q(x_{1:T} \lvertx_0)}  \right]  \quad \quad\text{（Jensen不等式）}
    \\
-   = E_{q(x_{1}|x_{0}}) [log p_θ(x_0|x_1)]  − \mathcal{D}_{KL}(q(x_T |x_0) \lVert p(x_T ))   −  \Sigma_{t=2}^{T}  E_{q(x_{t}|x_{0})} \left[\mathcal{D}_{KL}(q(x_{t-1}|x_t,x_{0})) \lVert p_\theta(x_{t−1}|x_t)) \right]
+   = E_{q(x_{1}\lvertx_{0}}) [log p_θ(x_0\lvertx_1)]  − \mathcal{D}_{KL}(q(x_T \lvertx_0) \lVert p(x_T ))   −  \Sigma_{t=2}^{T}  E_{q(x_{t}\lvertx_{0})} \left[\mathcal{D}_{KL}(q(x_{t-1}\lvertx_t,x_{0})) \lVert p_\theta(x_{t−1}\lvertx_t)) \right]
    $$
 
    具体推导过程可以看参考资料3，公式58。
 
    我们需要最大化$log p(x)$，因为要使我的模型能够将原始的输入$x$，能够拟合原始数据$p(x)$的概率最大。
 
-   我们可以只关注这个公式的最后一项，需要最大化 $ log p(x) $ ，即需要最小化这一项。最后一项是计算 $ q(x_{t-1}| x_t,x_{0}) $ 和 $ p_\theta(x_{t−1}| x_t) $ 的KL散度，KL散度是用来计算两个概率分布之间差异性的指标，因此，当两个分布接近的时候，差异最小。
+   我们可以只关注这个公式的最后一项，需要最大化 $ log p(x) $ ，即需要最小化这一项。最后一项是计算 $ q(x_{t-1}\lvert x_t,x_{0}) $ 和 $ p_\theta(x_{t−1}\lvert x_t) $ 的KL散度，KL散度是用来计算两个概率分布之间差异性的指标，因此，当两个分布接近的时候，差异最小。
 
-   也就是将 $ p_\theta(x_{t−1}| x_t) = q(x_{t-1}| x_t,x_{0}) $ ，这和我们的公式12-14 所说的内容是一样的。只不过我们的逻辑是通过马尔可夫性质和贝叶斯公式直接进行了转化。
+   也就是将 $ p_\theta(x_{t−1}\lvert x_t) = q(x_{t-1}\lvert x_t,x_{0}) $ ，这和我们的公式12-14 所说的内容是一样的。只不过我们的逻辑是通过马尔可夫性质和贝叶斯公式直接进行了转化。
 
 2. $T$要足够大，$\beta_t$要足够小，$\alpha_t = 1 - \beta_t$
 
