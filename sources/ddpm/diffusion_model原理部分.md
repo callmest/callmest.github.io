@@ -171,7 +171,7 @@ $$
 $$
 现在得到的这些概率分布都是已知的，代入：
 $$
-= \frac {\mathcal{N}(x_t; \sqrt{{\alpha}_t}x_{t-1},  (1 - {\alpha}_t)I) \mathcal{N}(x_{t-1}; \sqrt{\bar{\alpha_{t-1}}} x_0,  (1-{\bar\alpha}_{t-1})I)}{\mathcal{N}(x_t; \sqrt{\bar{\alpha_t}} x_0,  (1-{\bar\alpha}_t)I)}
+= \frac {\mathcal{N}(x_t; \sqrt{\alpha_t}x_{t-1},  (1 - \alpha_t)I) \mathcal{N}(x_{t-1}; \sqrt{\bar{\alpha_{t-1}}} x_0,  (1-{\bar\alpha}_{t-1})I)}{\mathcal{N}(x_t; \sqrt{\bar{\alpha_t}} x_0,  (1-{\bar\alpha}_t)I)}
 $$
 
 $$
@@ -204,7 +204,7 @@ $$
 
 虽然我们不知道$x_0$，但是上面已经推导出$x_0$和$x_t$之间的关系式：
 $$
-x_t = \sqrt{\bar{\alpha_t}} x_0 + \sqrt{1 - \bar{\alpha_t}}\epsilon
+x_t = \sqrt{\bar\alpha_t} x_0 + \sqrt{1 - \bar\alpha_t}\epsilon
 $$
 这样，我们就可以根据$x_t$推出$x_0$：
 $$
